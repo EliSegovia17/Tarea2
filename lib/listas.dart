@@ -10,15 +10,7 @@ class Listas extends StatefulWidget {
 }
 
 class _ListasState extends State<Listas> {
-
   Singleton singleton = Singleton();
-  //Funcion que inicializa o asigna o crea todo antes de que carge la vista
-  @override
-  void initState() {
-    //TODO: implement initState
-    super.initState();
-
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,152 +18,94 @@ class _ListasState extends State<Listas> {
       appBar: AppBar(
         title: Text(singleton.name_user),
       ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container( width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height * 0.45,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(20),
-            child : Column(
-              //Unico hijo usando una lista
-              children: List.generate(10, (index){ return buildContainer('Nombre', 'Apellido');}),
-            ),),
-          ),
-          //buildContainer('Nombre', 'Apellido'),
-          SizedBox(height: 20,),
-
-          Container( width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.height * 0.45,
-            child:ListView.builder(
-                itemCount: con.crearLista(15).length,
-                itemBuilder: (BuildContext context, int index){
-                  /// var -> cualquier tipo de variable
-                  var lista = con.crearLista(15); //Creando la lista de 15 elementos
-                  //Pasamos el registro al index a datos en forma de arreglo
-                  var datos = lista[index].toString().split('#');
-                  //datos[0] = ID
-                  //datos[2] = apellido...
-
-              return NewWidget(name: datos[1], ape: datos[2]);//Se crean listas infinitas
-            })
-          ),
-
-          //NewWidget()
-        ],
+      body: ListView.builder(
+        itemCount: con.crearLista(15).length,
+        itemBuilder: (BuildContext context, int index) {
+          var lista = con.crearLista(15);
+          var datos = lista[index].toString().split('#');
+          return UserItem(id: datos[0], name: datos[1], apePat: datos[2], apeMat: datos[3]);
+        },
       ),
-    );
-  }
-
-  Container buildContainer(String name, String ap) {
-    return Container(
-        color: Colors.blue,
-        child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 11,
-                    child: Text(name),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Icon(Icons.account_circle),
-                  )
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 11,
-                    child: Text(ap),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Icon(Icons.edit),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Icon(Icons.delete),
-                  )
-                ],
-              ),
-            ]
-        )
     );
   }
 }
 
-class NewWidget extends StatelessWidget {
-  const NewWidget({
-    super.key, required this.name, required this.ape,
-  });
-
+class UserItem extends StatelessWidget {
+  final String id;
   final String name;
-  final String ape;
+  final String apePat;
+  final String apeMat;
+
+  const UserItem({
+    super.key, required this.id, required this.name, required this.apePat, required this.apeMat,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-    color: Colors.blue,
-    child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+    return Card(
+      child: ListTile(
+        title: Text('$name $apePat $apeMat'),
+        leading: Icon(Icons.account_circle),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () => _showEditDialog(context),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () => _showDeleteDialog(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context) {
+    TextEditingController idController = TextEditingController(text: id);
+    TextEditingController nameController = TextEditingController(text: name);
+    TextEditingController apePatController = TextEditingController(text: apePat);
+    TextEditingController apeMatController = TextEditingController(text: apeMat);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Editar Usuario'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                flex: 11,
-                child: Text(name),
-              ),
-              Expanded(
-                flex: 1,
-                child: Icon(Icons.account_circle),
-              )
+              TextField(controller: idController, decoration: InputDecoration(labelText: 'ID')),
+              TextField(controller: nameController, decoration: InputDecoration(labelText: 'Nombre')),
+              TextField(controller: apePatController, decoration: InputDecoration(labelText: 'Apellido Paterno')),
+              TextField(controller: apeMatController, decoration: InputDecoration(labelText: 'Apellido Materno')),
             ],
           ),
-          Row(
-            children: [
-              Expanded(
-                flex: 11,
-                child: Text(ape),
-              ),
-              Expanded(
-                flex: 1,
-                child: Icon(Icons.edit),
-              ),
-              Expanded(
-                flex: 1,
-                child: IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    // Corrección del showDialog
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) => AlertDialog(
-                        title: Text(name),
-                        content: Text('¿Estás seguro de eliminar?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Cerrar el diálogo
-                            },
-                            child: Text('Aceptar'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Cerrar el diálogo
-                            },
-                            child: Text('Cancelar'),
-                          )
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              )
-            ],
-          ),
-        ]
-    )
-          );
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancelar')),
+            TextButton(onPressed: () {
+              // Aquí puedes manejar la actualización de los datos
+              Navigator.of(context).pop();
+            }, child: Text('Guardar')),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text('Eliminar Usuario'),
+        content: Text('¿Estás seguro de eliminar a $name $apePat?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Aceptar')),
+        ],
+      ),
+    );
   }
 }
